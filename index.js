@@ -2,7 +2,7 @@ const express = require('express');
 const cors = require('cors');
 
 module.exports = (api) => {
-    api.registerPlatform('homebridge-blog-light', 'BlogLightPlatform', BlogLightPlatform);
+    api.registerPlatform('BlogLightPlatform', BlogLightPlatform);
 };
 
 class BlogLightPlatform {
@@ -17,59 +17,63 @@ class BlogLightPlatform {
 
         this.accessories = [];
 
+        this.startServer();
+
         this.api.on('didFinishLaunching', () => {
             this.log.info('블로그 조명 플랫폼 로딩 완료');
             this.setupAccessory();
-            this.startServer();
         });
     }
 
     configureAccessory(accessory) {
-        this.log.info('캐시된 액세서리 불러오는 중:', accessory.displayName);
+        this.log.info('캐시에서 액세서리 복구 중:', accessory.displayName);
         this.accessories.push(accessory);
     }
 
     setupAccessory() {
         const name = "Blog Curtain Light";
-        const uuid = this.api.hap.uuid.generate('homebridge:blog-light-unique-v1');
+        const uuid = this.api.hap.uuid.generate('homebridge:blog-light');
 
         const existingAccessory = this.accessories.find(acc => acc.UUID === uuid);
 
         if (existingAccessory) {
-            this.log.info('기존 액세서리 사용:', existingAccessory.displayName);
-            this.updateCharacteristics(existingAccessory);
+            this.log.info('기존 액세서리 사용');
+            this.linkService(existingAccessory);
         } else {
-            this.log.info('새 액세서리 등록 중...');
+            this.log.info('새 액세서리 생성 중...');
             const accessory = new this.api.platformAccessory(name, uuid);
             accessory.addService(this.Service.Lightbulb, name);
-            this.updateCharacteristics(accessory);
+            this.linkService(accessory);
 
             this.api.registerPlatformAccessories('homebridge-blog-light', 'BlogLightPlatform', [accessory]);
         }
     }
 
-    updateCharacteristics(accessory) {
+    linkService(accessory) {
         const service = accessory.getService(this.Service.Lightbulb);
 
         service.getCharacteristic(this.Characteristic.On)
             .onGet(() => true)
-            .onSet((value) => { this.log.info('전원 상태:', value); });
+            .onSet((val) => this.log.info('전원:', val));
 
         service.getCharacteristic(this.Characteristic.Brightness)
             .onGet(() => this.brightness)
-            .onSet((value) => {
-                this.brightness = value;
-                this.log.info(`조도 변경: ${value}%`);
+            .onSet((val) => {
+                this.brightness = val;
+                this.log.info(`조도 변경: ${val}%`);
             });
     }
 
     startServer() {
         const app = express();
         app.use(cors());
-        app.get('/light', (req, res) => res.json({ brightness: this.brightness }));
+        app.get('/light', (req, res) => {
+            res.setHeader('ngrok-skip-browser-warning', 'true');
+            res.json({ brightness: this.brightness });
+        });
 
-        app.listen(8000, '0.0.0.0', () => {
-            this.log.info('API 서버 실행 중: http://localhost:8080/light');
+        app.listen(8010, '0.0.0.0', () => {
+            this.log.info('API 서버 실행 중: http://localhost:8090/light');
         });
     }
 }
