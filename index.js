@@ -11,7 +11,7 @@ class BlogLightPlatform {
         this.config = config;
         this.api = api;
 
-        this.brightness = 50;
+        this.brightness = 10;
         this.Service = api.hap.Service;
         this.Characteristic = api.hap.Characteristic;
 
@@ -31,7 +31,7 @@ class BlogLightPlatform {
     }
 
     setupAccessory() {
-        const name = "Blog Curtain Light";
+        const name = "Blog Light";
         const uuid = this.api.hap.uuid.generate('homebridge:blog-light');
 
         const existingAccessory = this.accessories.find(acc => acc.UUID === uuid);
@@ -67,7 +67,6 @@ class BlogLightPlatform {
     startServer() {
         const app = express();
 
-        const cors = require('cors');
         app.use(cors({
             origin: '*',
             methods: ['GET', 'POST', 'OPTIONS'],
@@ -83,7 +82,7 @@ class BlogLightPlatform {
             res.json({ brightness: this.brightness });
         });
 
-        app.listen(8010, '0.0.0.0', () => {
+        app.listen(8000, '0.0.0.0', () => {
             this.log.info('API 서버 실행 중: 8010');
         });
     }
