@@ -66,14 +66,25 @@ class BlogLightPlatform {
 
     startServer() {
         const app = express();
-        app.use(cors());
+
+        const cors = require('cors');
+        app.use(cors({
+            origin: '*',
+            methods: ['GET', 'POST', 'OPTIONS'],
+            allowedHeaders: ['Content-Type', 'ngrok-skip-browser-warning']
+        }));
+
         app.get('/light', (req, res) => {
+            res.setHeader('Access-Control-Allow-Origin', '*');
+            res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+            res.setHeader('Access-Control-Allow-Headers', 'Content-Type, ngrok-skip-browser-warning');
             res.setHeader('ngrok-skip-browser-warning', 'true');
+
             res.json({ brightness: this.brightness });
         });
 
         app.listen(8010, '0.0.0.0', () => {
-            this.log.info('API 서버 실행 중: http://localhost:8090/light');
+            this.log.info('API 서버 실행 중: 8010');
         });
     }
 }
