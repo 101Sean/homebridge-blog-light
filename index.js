@@ -17,7 +17,7 @@ class BlogLightPlatform {
         this.port = this.config.port || 8000;
         this.accessoryName = this.config.name || "Blog Light";
 
-        this.brightness = 10;
+        this.brightness = this.config.defaultBrightness || 20;
         this.Service = api.hap.Service;
         this.Characteristic = api.hap.Characteristic;
 
